@@ -45,19 +45,19 @@ const IGNORE_LIST = [
  *            In this case, #content-1 should not be considered as a top level readable element.
  */
 const bodyElements = document.body.childNodes;
-let parsedElements: HTMLElement[] = [];
+let parsedElements: ChildNode[] = [];
 
-export function getTopLevelReadableElementsOnPage(): HTMLElement[] {
+export function getTopLevelReadableElementsOnPage(): ChildNode[] {
   parsedElements = [];
   candiates(bodyElements);
   return parsedElements;
 }
 
-const isEmptyText = (node) => {
-  return node.nodeName === "#text" && node.textContent.trim().length === 0;
+const isEmptyText = (node: Node) => {
+  return node.nodeName === "#text" && node.textContent?.trim().length === 0;
 };
 
-const isEmptyElement = (node) => {
+const isEmptyElement = (node: Node) => {
   if (node.nodeName !== "#text") {
     if (node.childNodes.length === 0) {
       return true;
@@ -69,7 +69,7 @@ const isEmptyElement = (node) => {
   }
 };
 
-const isInIgnoreList = (node) => {
+const isInIgnoreList = (node: Node) => {
   let nodeName = node.nodeName;
   for (let i = 0; i < IGNORE_LIST.length; i++) {
     if (nodeName === IGNORE_LIST[i]) {
@@ -79,8 +79,8 @@ const isInIgnoreList = (node) => {
   return false;
 };
 
-const trueNodeCount = (element) => {
-  let childNodes = element.childNodes;
+const trueNodeCount = (node: Node) => {
+  let childNodes = node.childNodes;
   let count = 0;
   for (let childNode of childNodes) {
     if (!isEmptyText(childNode) && !isEmptyElement(childNode) && !isInIgnoreList(childNode)) {
@@ -90,21 +90,21 @@ const trueNodeCount = (element) => {
   return count;
 };
 
-const isText = (node) => {
-  return node.nodeName === "#text" && node.textContent.trim().length !== 0;
+const isText = (node: Node) => {
+  return node.nodeName === "#text" && node.textContent?.trim().length !== 0;
 };
 
-const isIncludeText = (element) => {
+const hasTextContent = (element: ChildNode) => {
   let childNodes = element.childNodes;
   return [...childNodes].some((node) => isText(node));
 };
 
-const checkParentChildLength = (element) => {
-  let count = 0;
+const checkParentChildLength = (element: ChildNode) => {
+  let count: number|undefined = 0;
   while (1) {
-    count = element.parentElement.children.length;
+    count = element.parentElement?.children.length;
     if (count === 1) {
-      element = element.parentElement;
+      element = element.parentElement!;
     } else {
       break;
     }
@@ -112,7 +112,7 @@ const checkParentChildLength = (element) => {
   return element;
 };
 
-const insertTopReadableElement = (element) => {
+const insertTopReadableElement = (element: ChildNode) => {
   if (!isInIgnoreList(element)) {
     let parsedElement = checkParentChildLength(element);
     parsedElements.push(parsedElement);
@@ -120,13 +120,13 @@ const insertTopReadableElement = (element) => {
   }
 };
 
-const candiates = (elements) => {
-  for (let element of elements) {
-    if (trueNodeCount(element)) {
-      if (!isIncludeText(element)) {
-        candiates(element.childNodes);
+const candiates = (nodes: NodeListOf<ChildNode>) => {
+  for (let node of nodes) {
+    if (trueNodeCount(node)) {
+      if (!hasTextContent(node)) {
+        candiates(node.childNodes);
       } else {
-        insertTopReadableElement(element);
+        insertTopReadableElement(node);
       }
     }
   }
