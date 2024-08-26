@@ -23,22 +23,18 @@ export function getElementBounds(elem: HTMLElement) {
  */
 export function isPointInsideElement(
   coordinate: { x: number; y: number },
-  element: HTMLElement
+  element: HTMLElement,
 ): boolean {
-  let x = coordinate.x
-  let y = coordinate.y
-  let left = element.offsetLeft
-  let right = element.offsetLeft + element.offsetWidth
-  let top = element.offsetTop
-  let bottom = element.offsetTop + element.offsetHeight
+  const elementBounds = getElementBounds(element);
   if (
-    x > left && 
-    x < right && 
-    y > top && 
-    y < bottom) {
-      return true
-    }
-    return false
+    coordinate.x > elementBounds.x - 12 &&
+    coordinate.x < elementBounds.x + elementBounds.width &&
+    coordinate.y > elementBounds.y - 12 &&
+    coordinate.y < elementBounds.y + elementBounds.height
+  ) {
+    return true;
+  }
+  return false;
 }
 
 /**
@@ -46,7 +42,12 @@ export function isPointInsideElement(
  * We will later use this to size the HTML element that contains the hover player
  */
 export function getLineHeightOfFirstLine(element: HTMLElement): number {
-  return element.offsetHeight
+  var elementStyle = window.getComputedStyle(element);
+  if (!!elementStyle.lineHeight) {
+    return parseInt(elementStyle.lineHeight);
+  } else {
+    return 0;
+  }
 }
 
 export type HoveredElementInfo = {
@@ -63,29 +64,44 @@ export type HoveredElementInfo = {
  * Note: If using global event listeners, attach them window instead of document to ensure tests pass
  */
 export function useHoveredParagraphCoordinate(
-  parsedElements: HTMLElement[]
+  parsedElements: HTMLElement[],
 ): HoveredElementInfo | null {
-  const [elementInfo, setElementInfo]= useState<HoveredElementInfo | null>(null)
-  const [x, setX] = useState(0)
-  const [y, setY] = useState(0)
+  const [elementInfo, setElementInfo] = useState<HoveredElementInfo | null>(
+    null,
+  );
+  const [x, setX] = useState(0);
+  const [y, setY] = useState(0);
   window.addEventListener("mousemove", (e) => {
-      setElementInfo(null)
-    setX(e.clientX)
-    setY(e.clientY)
-  })
+    setX(e.pageX);
+    setY(e.pageY);
+  });
+  // window.addEventListener("click", (e) => {
+  //   setElementInfo(null);
+  //   setX(e.pageX);
+  //   setY(e.pageY);
+  // });
 
   useEffect(() => {
-    for (let element of parsedElements) {
-      if (isPointInsideElement({x, y}, element)) {
-        setElementInfo( {
-          element: element,
-          top: element.offsetTop,
-          left: element.offsetLeft,
-          heightOfFirstLine: getLineHeightOfFirstLine(element)
-        })
-      }
+    let index = 0;
+    while (
+      index < parsedElements.length &&
+      !isPointInsideElement({ x, y }, parsedElements[index])
+    ) {
+      index++;
     }
-  }, [x, y])
 
-  return elementInfo
+    if (index < parsedElements.length) {
+      let element = parsedElements[index];
+      setElementInfo({
+        element: element,
+        top: element.offsetTop,
+        left: element.offsetLeft,
+        heightOfFirstLine: getLineHeightOfFirstLine(element),
+      });
+    } else {
+      setElementInfo(null);
+    }
+  }, [x, y]);
+
+  return elementInfo;
 }

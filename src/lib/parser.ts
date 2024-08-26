@@ -44,4 +44,90 @@ const IGNORE_LIST = [
  *            </body>;
  *            In this case, #content-1 should not be considered as a top level readable element.
  */
-export function getTopLevelReadableElementsOnPage(): HTMLElement[] {}
+const bodyElements = document.body.childNodes;
+let parsedElements: HTMLElement[] = [];
+
+export function getTopLevelReadableElementsOnPage(): HTMLElement[] {
+  parsedElements = [];
+  candiates(bodyElements);
+  return parsedElements;
+}
+
+const isEmptyText = (node) => {
+  return node.nodeName === "#text" && node.textContent.trim().length === 0;
+};
+
+const isEmptyElement = (node) => {
+  if (node.nodeName !== "#text") {
+    if (node.childNodes.length === 0) {
+      return true;
+    } else if (node.childNodes.length === 1) {
+      return isEmptyText(node.childNodes[0]);
+    } else {
+      return false;
+    }
+  }
+};
+
+const isInIgnoreList = (node) => {
+  let nodeName = node.nodeName;
+  for (let i = 0; i < IGNORE_LIST.length; i++) {
+    if (nodeName === IGNORE_LIST[i]) {
+      return true;
+    }
+  }
+  return false;
+};
+
+const trueNodeCount = (element) => {
+  let childNodes = element.childNodes;
+  let count = 0;
+  for (let childNode of childNodes) {
+    if (!isEmptyText(childNode) && !isEmptyElement(childNode) && !isInIgnoreList(childNode)) {
+      count++;
+    }
+  }
+  return count;
+};
+
+const isText = (node) => {
+  return node.nodeName === "#text" && node.textContent.trim().length !== 0;
+};
+
+const isIncludeText = (element) => {
+  let childNodes = element.childNodes;
+  return [...childNodes].some((node) => isText(node));
+};
+
+const checkParentChildLength = (element) => {
+  let count = 0;
+  while (1) {
+    count = element.parentElement.children.length;
+    if (count === 1) {
+      element = element.parentElement;
+    } else {
+      break;
+    }
+  }
+  return element;
+};
+
+const insertTopReadableElement = (element) => {
+  if (!isInIgnoreList(element)) {
+    let parsedElement = checkParentChildLength(element);
+    parsedElements.push(parsedElement);
+    console.log(parsedElement);
+  }
+};
+
+const candiates = (elements) => {
+  for (let element of elements) {
+    if (trueNodeCount(element)) {
+      if (!isIncludeText(element)) {
+        candiates(element.childNodes);
+      } else {
+        insertTopReadableElement(element);
+      }
+    }
+  }
+};

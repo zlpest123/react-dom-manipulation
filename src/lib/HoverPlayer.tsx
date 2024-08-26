@@ -1,6 +1,6 @@
-import { createRoot } from "react-dom/client";
 import { useHoveredParagraphCoordinate } from "./hook";
 import { speechify } from "./play";
+import { getTopLevelReadableElementsOnPage } from "./parser";
 
 // This is a simple play button SVG that you can use in your hover player
 const PlayButton = (props: React.SVGProps<SVGSVGElement>) => (
@@ -15,10 +15,9 @@ const PlayButton = (props: React.SVGProps<SVGSVGElement>) => (
       cursor: "pointer",
       background: "#6B78FC",
       borderRadius: "50%",
-      position: "absolute"
+      position: "absolute",
     }}
     {...props}
-    onClick={() => speechify(props.element)}
   >
     <path
       d="M16.3711 11.3506C16.8711 11.6393 16.8711 12.361 16.3711 12.6497L10.3711 16.1138C9.87109 16.4024 9.24609 16.0416 9.24609 15.4642L9.24609 8.53603C9.24609 7.95868 9.87109 7.59784 10.3711 7.88651L16.3711 11.3506Z"
@@ -34,19 +33,27 @@ const PlayButton = (props: React.SVGProps<SVGSVGElement>) => (
  * This component should make use of the useHoveredParagraphCoordinate hook to get information about the hovered paragraph
  */
 export default function HoverPlayer() {
-  // console.log(document.getElementsByTagName("p").length)
-  const hovered = useHoveredParagraphCoordinate(document.getElementsByTagName("p"))
-  if (hovered == null) {
-    const playBtn = document.getElementById("play-icon")
-    playBtn?.remove()
-  }
-  else if (!document.getElementById("play-icon")) {
-    let elem = hovered?.element
-    const playBtn = document.createElement("span")
-    elem?.insertBefore(playBtn, elem.childNodes[0])
-    const container = createRoot(playBtn)
-    return container.render(<PlayButton element={elem} />)
-  }
-  
-  // return <PlayButton />
+  // const parsedElements = Array.prototype.slice.call([
+  //   ...document.getElementsByTagName("p"),
+  //   ...document.getElementsByTagName("blockquote"),
+  // ]);
+
+  const parsedElements = getTopLevelReadableElementsOnPage();
+
+  const hoveredParagraph = useHoveredParagraphCoordinate(parsedElements);
+
+  return (
+    hoveredParagraph && (
+      <div
+        style={{
+          position: "absolute",
+          left: hoveredParagraph.left - 12,
+          top: hoveredParagraph.top,
+        }}
+        onClick={() => speechify(hoveredParagraph.element)}
+      >
+        <PlayButton />
+      </div>
+    )
+  );
 }
