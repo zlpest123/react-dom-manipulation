@@ -45,9 +45,9 @@ const IGNORE_LIST = [
  *            In this case, #content-1 should not be considered as a top level readable element.
  */
 const bodyElements = document.body.childNodes;
-let parsedElements: ChildNode[] = [];
+let parsedElements: HTMLElement[] = [];
 
-export function getTopLevelReadableElementsOnPage(): ChildNode[] {
+export function getTopLevelReadableElementsOnPage(): HTMLElement[] {
   parsedElements = [];
   candiates(bodyElements);
   return parsedElements;
@@ -99,7 +99,7 @@ const hasTextContent = (element: ChildNode) => {
   return [...childNodes].some((node) => isText(node));
 };
 
-const checkParentChildLength = (element: ChildNode) => {
+const checkParentChildLength = (element: HTMLElement) => {
   let count: number|undefined = 0;
   while (1) {
     count = element.parentElement?.children.length;
@@ -112,7 +112,7 @@ const checkParentChildLength = (element: ChildNode) => {
   return element;
 };
 
-const insertTopReadableElement = (element: ChildNode) => {
+const insertTopReadableElement = (element: HTMLElement) => {
   if (!isInIgnoreList(element)) {
     let parsedElement = checkParentChildLength(element);
     parsedElements.push(parsedElement);
@@ -125,8 +125,9 @@ const candiates = (nodes: NodeListOf<ChildNode>) => {
     if (trueNodeCount(node)) {
       if (!hasTextContent(node)) {
         candiates(node.childNodes);
-      } else {
-        insertTopReadableElement(node);
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        let element = node as HTMLElement;
+        insertTopReadableElement(element);
       }
     }
   }
