@@ -53,23 +53,23 @@ export function getTopLevelReadableElementsOnPage(): HTMLElement[] {
   return parsedElements;
 }
 
-const isEmptyText = (node: Node) => {
+const isEmptyText = (node: Node): boolean => {
   return node.nodeName === "#text" && node.textContent?.trim().length === 0;
 };
 
-const isEmptyElement = (node: Node) => {
+const isEmptyElement = (node: Node): boolean => {
+  let flag = false;
   if (node.nodeName !== "#text") {
     if (node.childNodes.length === 0) {
-      return true;
+      flag = true;
     } else if (node.childNodes.length === 1) {
-      return isEmptyText(node.childNodes[0]);
-    } else {
-      return false;
-    }
-  }
+      flag = isEmptyText(node.childNodes[0]);
+    } 
+  } 
+  return flag;
 };
 
-const isInIgnoreList = (node: Node) => {
+const isInIgnoreList = (node: Node): boolean => {
   let nodeName = node.nodeName;
   for (let i = 0; i < IGNORE_LIST.length; i++) {
     if (nodeName === IGNORE_LIST[i]) {
@@ -79,7 +79,7 @@ const isInIgnoreList = (node: Node) => {
   return false;
 };
 
-const trueNodeCount = (node: Node) => {
+const trueNodeCount = (node: Node): number => {
   let childNodes = node.childNodes;
   let count = 0;
   for (let childNode of childNodes) {
@@ -90,16 +90,16 @@ const trueNodeCount = (node: Node) => {
   return count;
 };
 
-const isText = (node: Node) => {
+const isText = (node: Node): boolean => {
   return node.nodeName === "#text" && node.textContent?.trim().length !== 0;
 };
 
-const hasTextContent = (element: ChildNode) => {
+const hasTextContent = (element: ChildNode): boolean => {
   let childNodes = element.childNodes;
   return [...childNodes].some((node) => isText(node));
 };
 
-const checkParentChildLength = (element: HTMLElement) => {
+const checkParentChildLength = (element: HTMLElement): HTMLElement => { //for the third condition
   let count: number|undefined = 0;
   while (1) {
     count = element.parentElement?.children.length;
@@ -112,9 +112,9 @@ const checkParentChildLength = (element: HTMLElement) => {
   return element;
 };
 
-const insertTopReadableElement = (element: HTMLElement) => {
+const insertTopReadableElement = (element: HTMLElement): void => {
   if (!isInIgnoreList(element)) {
-    let parsedElement = checkParentChildLength(element);
+    let parsedElement = checkParentChildLength(element); //for the third condition
     parsedElements.push(parsedElement);
     console.log(parsedElement);
   }
@@ -123,9 +123,9 @@ const insertTopReadableElement = (element: HTMLElement) => {
 const candiates = (nodes: NodeListOf<ChildNode>) => {
   for (let node of nodes) {
     if (trueNodeCount(node)) {
-      if (!hasTextContent(node)) {
+      if (!hasTextContent(node)) { //stop if child node is non-empty text node
         candiates(node.childNodes);
-      } else if (node.nodeType === Node.ELEMENT_NODE) {
+      } else {
         let element = node as HTMLElement;
         insertTopReadableElement(element);
       }

@@ -27,10 +27,10 @@ export function isPointInsideElement(
 ): boolean {
   const elementBounds = getElementBounds(element);
   if (
-    coordinate.x > elementBounds.x &&
-    coordinate.x < elementBounds.x + elementBounds.width &&
-    coordinate.y > elementBounds.y &&
-    coordinate.y < elementBounds.y + elementBounds.height
+    coordinate.x >= elementBounds.x &&
+    coordinate.x <= elementBounds.x + elementBounds.width &&
+    coordinate.y >= elementBounds.y &&
+    coordinate.y <= elementBounds.y + elementBounds.height
   ) {
     return true;
   }
@@ -70,10 +70,16 @@ export function useHoveredParagraphCoordinate(
   );
   const [x, setX] = useState(0);
   const [y, setY] = useState(0);
-  window.addEventListener("mousemove", (e) => {
+  window.addEventListener("mouseover", (e) => {
     setX(e.pageX);
     setY(e.pageY);
   });
+  window.addEventListener("mouseout", (e) => {
+    let element = document.getElementById("hover-player");
+    if(element) element.id = "";
+    // setX(e.pageX);
+    // setY(e.pageY);
+  })
 
   useEffect(() => {
     let index = 0;
@@ -86,6 +92,7 @@ export function useHoveredParagraphCoordinate(
 
     if (index < parsedElements.length) {
       let element = parsedElements[index];
+      if(!element.id) element.id = "hover-player";
       setElementInfo({
         element: element,
         top: element.offsetTop,

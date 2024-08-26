@@ -33,10 +33,6 @@ const PlayButton = (props: React.SVGProps<SVGSVGElement>) => (
  * This component should make use of the useHoveredParagraphCoordinate hook to get information about the hovered paragraph
  */
 export default function HoverPlayer() {
-  // const parsedElements = Array.prototype.slice.call([
-  //   ...document.getElementsByTagName("p"),
-  //   ...document.getElementsByTagName("blockquote"),
-  // ]);
 
   const parsedElements = getTopLevelReadableElementsOnPage();
 
@@ -47,7 +43,7 @@ export default function HoverPlayer() {
       <div
         style={{
           position: "absolute",
-          left: hoveredParagraph.left - 12,
+          left: hoveredParagraph.left-12,
           top: hoveredParagraph.top,
         }}
         onClick={() => speechify(hoveredParagraph.element)}
