@@ -116,7 +116,7 @@ const insertTopReadableElement = (element: HTMLElement): void => {
   if (!isInIgnoreList(element)) {
     let parsedElement = checkParentChildLength(element); //for the third condition
     parsedElements.push(parsedElement);
-    console.log(parsedElement);
+    // console.log(parsedElement);
   }
 };
 
