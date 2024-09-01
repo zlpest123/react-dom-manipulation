@@ -70,7 +70,7 @@ export function useHoveredParagraphCoordinate(
   );
   const [x, setX] = useState(0);
   const [y, setY] = useState(0);
-  window.addEventListener("mousemove", (e) => {
+  window.addEventListener("mouseover", (e) => {
     setX(e.pageX);
     setY(e.pageY);
   });
